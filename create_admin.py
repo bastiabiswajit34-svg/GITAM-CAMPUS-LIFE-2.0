@@ -1,4 +1,3 @@
-
 # ============================================================
 # GITAM CAMPUS LIFE
 # CREATE ADMIN ACCOUNT
@@ -20,7 +19,7 @@ init_db()
 # ============================================================
 
 USERNAME = "admin"
-PASSWORD = "Admin@12"
+PASSWORD = "Admin@123"
 NAME = "Campus Administrator"
 EMAIL = "admin@gitamcampus.local"
 
