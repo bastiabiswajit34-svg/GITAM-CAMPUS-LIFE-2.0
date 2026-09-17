@@ -1,482 +1,794 @@
+# ============================================================
+# GITAM CAMPUS LIFE
+# MAIN APPLICATION
+# ============================================================
 
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>Verify Visitor Pass - GITAM Campus Life</title>
-
-    <style>
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f1f8f4;
-            color: #183b2a;
-        }
-
-        .header {
-            background: #087f3f;
-            color: white;
-            text-align: center;
-            padding: 22px 15px;
-        }
-
-        .header h1 {
-            margin: 0;
-            font-size: 25px;
-        }
-
-        .header p {
-            margin: 6px 0 0;
-            font-size: 13px;
-        }
-
-        .container {
-            max-width: 650px;
-            margin: auto;
-            padding: 30px 15px 90px;
-        }
-
-        .card {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 5px 20px rgba(0,0,0,.08);
-            margin-bottom: 20px;
-        }
-
-        .card h2 {
-            color: #087f3f;
-            text-align: center;
-            margin-top: 0;
-        }
-
-        .description {
-            text-align: center;
-            color: #607568;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        label {
-            display: block;
-            margin-top: 18px;
-            margin-bottom: 7px;
-            font-weight: bold;
-            color: #087f3f;
-        }
-
-        input {
-            width: 100%;
-            padding: 13px;
-            border: 1px solid #c9ddd0;
-            border-radius: 8px;
-            font-size: 15px;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: #087f3f;
-            box-shadow: 0 0 0 2px #dff2e7;
-        }
-
-        .button {
-            width: 100%;
-            margin-top: 20px;
-            padding: 13px;
-            border: none;
-            border-radius: 8px;
-            background: #087f3f;
-            color: white;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .button:hover {
-            background: #066b35;
-        }
-
-        .result {
-            text-align: center;
-            padding: 22px;
-            border-radius: 12px;
-            margin-top: 20px;
-        }
-
-        .valid {
-            background: #e8f7ed;
-            border: 2px solid #087f3f;
-            color: #087f3f;
-        }
-
-        .invalid {
-            background: #fff0ee;
-            border: 2px solid #d92d20;
-            color: #b42318;
-        }
-
-        .pending {
-            background: #fff8e6;
-            border: 2px solid #d9a400;
-            color: #8a6500;
-        }
-
-        .result-icon {
-            font-size: 45px;
-        }
-
-        .result h3 {
-            margin: 10px 0;
-        }
-
-        .details {
-            margin-top: 20px;
-            text-align: left;
-        }
+from flask import (
+    Flask,
+    render_template,
+    redirect,
+    url_for,
+    session,
+    flash
+)
 
-        .detail {
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-            padding: 10px 0;
-            border-bottom: 1px solid #e5eee8;
-        }
+from config import (
+    SECRET_KEY,
+    APP_NAME,
+    APP_VERSION,
+    CREATOR
+)
 
-        .detail strong {
-            color: #087f3f;
-        }
+from database import (
+    init_db,
+    get_db
+)
 
-        .detail span {
-            text-align: right;
-        }
+from auth import (
+    auth,
+    login_required
+)
 
-        .back {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: #087f3f;
-            text-decoration: none;
-            font-weight: bold;
-        }
 
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #087f3f;
-            color: white;
-            text-align: center;
-            padding: 12px;
-            font-size: 13px;
-            font-weight: bold;
-        }
+# ============================================================
+# FLASK APP
+# ============================================================
 
-        @media (max-width: 600px) {
+app = Flask(__name__)
 
-            .container {
-                padding: 20px 10px 85px;
-            }
+app.secret_key = SECRET_KEY
 
-            .card {
-                padding: 20px 15px;
-            }
 
-            .detail {
-                flex-direction: column;
-                gap: 4px;
-            }
+# ============================================================
+# BASIC CONFIGURATION
+# ============================================================
 
-            .detail span {
-                text-align: left;
-            }
+app.config["APP_NAME"] = APP_NAME
+app.config["APP_VERSION"] = APP_VERSION
+app.config["CREATOR"] = CREATOR
 
-        }
 
-    </style>
+# ============================================================
+# DATABASE INITIALIZATION
+# ============================================================
 
-</head>
+try:
 
+    init_db()
 
-<body>
+    print("[OK] Database initialized successfully.")
 
+except Exception as e:
 
-<header class="header">
+    print("[ERROR] Database initialization failed:")
+    print(e)
 
-    <h1>
-        🔐 Visitor Pass Verification
-    </h1>
 
-    <p>
-        GITAM Campus Life
-    </p>
+# ============================================================
+# AUTHENTICATION MODULE
+# ============================================================
 
-</header>
+try:
 
+    app.register_blueprint(auth)
 
-<main class="container">
+    print("[OK] Auth module loaded.")
 
+except Exception as e:
 
-    <div class="card">
+    print("[ERROR] Auth module failed:")
+    print(e)
 
-        <h2>
-            Verify Visitor Pass
-        </h2>
 
-        <p class="description">
+# ============================================================
+# ATTENDANCE MODULE
+# ============================================================
 
-            Enter the visitor pass code to check
-            whether the pass has been approved and
-            is valid for campus entry.
+try:
 
-        </p>
+    from modules.attendance.routes import attendance
 
+    app.register_blueprint(attendance)
 
-        <form method="POST">
+    print("[OK] Attendance module loaded.")
 
-            <label for="pass_code">
-                Visitor Pass Code
-            </label>
+except Exception as e:
 
-            <input
-                type="text"
-                id="pass_code"
-                name="pass_code"
-                placeholder="Example: VST-20260917-ABC12345"
-                required
-                autocomplete="off"
-            >
+    print("[ERROR] Attendance module failed:")
+    print(e)
 
-            <button
-                type="submit"
-                class="button"
-            >
-                🔍 Verify Pass
-            </button>
 
-        </form>
+# ============================================================
+# LEAVE MODULE
+# ============================================================
 
+try:
 
-        {% if visitor %}
+    from modules.leave.routes import leave
 
-            {% if visitor["status"]|lower == "approved" %}
+    app.register_blueprint(leave)
 
-            <div class="result valid">
+    print("[OK] Leave module loaded.")
 
-                <div class="result-icon">
-                    ✅
-                </div>
+except Exception as e:
 
-                <h3>
-                    VISITOR PASS VALID
-                </h3>
+    print("[ERROR] Leave module failed:")
+    print(e)
+
+
+# ============================================================
+# GATE PASS MODULE
+# ============================================================
+
+try:
+
+    from modules.gate_pass.routes import gate_pass
+
+    app.register_blueprint(gate_pass)
+
+    print("[OK] Gate Pass module loaded.")
+
+except Exception as e:
+
+    print("[ERROR] Gate Pass module failed:")
+    print(e)
+
+
+# ============================================================
+# CERTIFICATE MODULE
+# ============================================================
+
+try:
+
+    from modules.certificates.routes import certificates
+
+    app.register_blueprint(certificates)
+
+    print("[OK] Certificates module loaded.")
+
+except Exception as e:
+
+    print("[ERROR] Certificates module failed:")
+    print(e)
+
+
+# ============================================================
+# COMPLAINTS MODULE
+# ============================================================
+
+try:
+
+    from modules.complaints.routes import complaints
+
+    app.register_blueprint(complaints)
+
+    print("[OK] Complaints module loaded.")
+
+except Exception as e:
+
+    print("[ERROR] Complaints module failed:")
+    print(e)
+
+
+# ============================================================
+# NOTICES MODULE
+# ============================================================
+
+try:
+
+    from modules.notices.routes import notices
+
+    app.register_blueprint(notices)
+
+    print("[OK] Notices module loaded.")
+
+except Exception as e:
+
+    print("[ERROR] Notices module failed:")
+    print(e)
+
+
+# ============================================================
+# NOTIFICATIONS MODULE
+# ============================================================
+
+try:
+
+    from modules.notifications.routes import notifications
+
+    app.register_blueprint(notifications)
+
+    print("[OK] Notifications module loaded.")
+
+except Exception as e:
+
+    print("[ERROR] Notifications module failed:")
+    print(e)
+
+
+# ============================================================
+# DIGITAL ID MODULE
+# ============================================================
+
+try:
+
+    from modules.digital_id.routes import digital_id
+
+    app.register_blueprint(digital_id)
+
+    print("[OK] Digital ID module loaded.")
+
+except Exception as e:
+
+    print("[ERROR] Digital ID module failed:")
+    print(e)
+
+
+# ============================================================
+# VISITOR MODULE
+# ============================================================
+
+try:
+
+    from modules.visitor.routes import visitor
+
+    app.register_blueprint(visitor)
+
+    print("[OK] Visitor module loaded.")
+
+except Exception as e:
+
+    print("[ERROR] Visitor module failed:")
+    print(e)
+
+
+# ============================================================
+# EVENTS MODULE
+# ============================================================
+
+try:
+
+    from modules.events.routes import events
+
+    app.register_blueprint(events)
+
+    print("[OK] Events module loaded.")
+
+except Exception as e:
+
+    print("[ERROR] Events module failed:")
+    print(e)
+
+
+# ============================================================
+# ADMIN USER MANAGEMENT
+# ============================================================
+
+try:
+
+    from modules.admin_users.routes import admin_users
+
+    app.register_blueprint(admin_users)
+
+    print("[OK] Admin Users module loaded.")
+
+except Exception as e:
+
+    print("[ERROR] Admin Users module failed:")
+    print(e)
+
+
+# ============================================================
+# HOME PAGE
+# ============================================================
+
+@app.route("/")
+def home():
+
+    return render_template(
+        "base.html"
+    )
+
+
+# ============================================================
+# STUDENT DASHBOARD
+# ============================================================
+
+@app.route("/student/dashboard")
+@login_required
+def student_dashboard():
+
+    # --------------------------------------------------------
+    # ROLE CHECK
+    # --------------------------------------------------------
+
+    role = str(
+        session.get("role", "")
+    ).strip().lower()
+
+
+    if role != "student":
+
+        flash(
+            "Student access required.",
+            "error"
+        )
+
+        return redirect(
+            url_for("home")
+        )
+
+
+    # --------------------------------------------------------
+    # GET CURRENT USER
+    # --------------------------------------------------------
+
+    db = get_db()
+
+    user = db.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE id = ?
+        LIMIT 1
+        """,
+        (
+            session.get("user_id"),
+        )
+    ).fetchone()
+
+    db.close()
+
+
+    # --------------------------------------------------------
+    # USER NOT FOUND
+    # --------------------------------------------------------
+
+    if not user:
+
+        session.clear()
+
+        flash(
+            "User account not found.",
+            "error"
+        )
+
+        return redirect(
+            url_for("auth.login")
+        )
+
+
+    # --------------------------------------------------------
+    # RENDER
+    # --------------------------------------------------------
+
+    return render_template(
+        "student_dashboard.html",
+        user=user
+    )
+
+
+# ============================================================
+# FACULTY DASHBOARD
+# ============================================================
+
+@app.route("/faculty/dashboard")
+@login_required
+def faculty_dashboard():
+
+    # --------------------------------------------------------
+    # ROLE CHECK
+    # --------------------------------------------------------
+
+    role = str(
+        session.get("role", "")
+    ).strip().lower()
+
+
+    if role != "faculty":
+
+        flash(
+            "Faculty access required.",
+            "error"
+        )
+
+        return redirect(
+            url_for("home")
+        )
+
+
+    # --------------------------------------------------------
+    # GET CURRENT USER
+    # --------------------------------------------------------
+
+    db = get_db()
+
+    user = db.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE id = ?
+        LIMIT 1
+        """,
+        (
+            session.get("user_id"),
+        )
+    ).fetchone()
+
+    db.close()
+
+
+    # --------------------------------------------------------
+    # USER NOT FOUND
+    # --------------------------------------------------------
+
+    if not user:
+
+        session.clear()
+
+        flash(
+            "User account not found.",
+            "error"
+        )
+
+        return redirect(
+            url_for("auth.login")
+        )
+
+
+    # --------------------------------------------------------
+    # RENDER
+    # --------------------------------------------------------
+
+    return render_template(
+        "faculty_dashboard.html",
+        user=user
+    )
+
+
+# ============================================================
+# ADMIN DASHBOARD
+# ============================================================
+
+@app.route("/admin/dashboard")
+@login_required
+def admin_dashboard():
+
+    # --------------------------------------------------------
+    # ROLE CHECK
+    # --------------------------------------------------------
+
+    role = str(
+        session.get("role", "")
+    ).strip().lower()
+
+
+    if role != "admin":
+
+        flash(
+            "Administrator access required.",
+            "error"
+        )
+
+        return redirect(
+            url_for("home")
+        )
+
+
+    db = get_db()
+
+
+    # ========================================================
+    # USER COUNTS
+    # ========================================================
+
+    students_result = db.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM users
+        WHERE lower(role) = 'student'
+        """
+    ).fetchone()
+
+
+    faculty_result = db.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM users
+        WHERE lower(role) = 'faculty'
+        """
+    ).fetchone()
+
+
+    pending_users_result = db.execute(
+        """
+        SELECT COUNT(*) AS total
+        FROM users
+        WHERE lower(COALESCE(status, '')) = 'pending'
+        """
+    ).fetchone()
+
+
+    # ========================================================
+    # REQUEST COUNTS
+    # ========================================================
+
+    pending_leave = 0
+    pending_gate_pass = 0
+    pending_certificates = 0
+    pending_complaints = 0
+    pending_visitors = 0
+
+
+    # --------------------------------------------------------
+    # LEAVE
+    # --------------------------------------------------------
+
+    try:
+
+        result = db.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM leave_requests
+            WHERE lower(status) = 'pending'
+            """
+        ).fetchone()
+
+        pending_leave = result["total"]
+
+    except Exception:
+
+        pending_leave = 0
+
+
+    # --------------------------------------------------------
+    # GATE PASS
+    # --------------------------------------------------------
+
+    try:
+
+        result = db.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM gate_passes
+            WHERE lower(status) = 'pending'
+            """
+        ).fetchone()
+
+        pending_gate_pass = result["total"]
+
+    except Exception:
+
+        pending_gate_pass = 0
+
+
+    # --------------------------------------------------------
+    # CERTIFICATES
+    # --------------------------------------------------------
+
+    try:
+
+        result = db.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM certificate_requests
+            WHERE lower(status) = 'pending'
+            """
+        ).fetchone()
+
+        pending_certificates = result["total"]
+
+    except Exception:
+
+        pending_certificates = 0
+
+
+    # --------------------------------------------------------
+    # COMPLAINTS
+    # --------------------------------------------------------
+
+    try:
+
+        result = db.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM complaints
+            WHERE lower(status) = 'pending'
+            """
+        ).fetchone()
+
+        pending_complaints = result["total"]
+
+    except Exception:
+
+        pending_complaints = 0
+
+
+    # --------------------------------------------------------
+    # VISITORS
+    # --------------------------------------------------------
+
+    try:
+
+        result = db.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM visitors
+            WHERE lower(status) = 'pending'
+            """
+        ).fetchone()
+
+        pending_visitors = result["total"]
+
+    except Exception:
+
+        pending_visitors = 0
+
+
+    # ========================================================
+    # EVENT COUNT
+    # ========================================================
+
+    total_events = 0
+
+    try:
+
+        result = db.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM events
+            """
+        ).fetchone()
+
+        total_events = result["total"]
+
+    except Exception:
+
+        total_events = 0
+
+
+    # ========================================================
+    # TOTAL REQUESTS
+    # ========================================================
+
+    pending_requests = (
+        pending_leave
+        + pending_gate_pass
+        + pending_certificates
+        + pending_complaints
+    )
+
+
+    db.close()
+
+
+    # ========================================================
+    # RENDER ADMIN DASHBOARD
+    # ========================================================
+
+    return render_template(
+        "admin_dashboard.html",
+
+        students=students_result["total"],
+
+        faculty=faculty_result["total"],
+
+        pending_users=pending_users_result["total"],
+
+        pending_requests=pending_requests,
+
+        pending_leave=pending_leave,
+
+        pending_gate_pass=pending_gate_pass,
+
+        pending_certificates=pending_certificates,
+
+        pending_complaints=pending_complaints,
+
+        pending_visitors=pending_visitors,
+
+        total_events=total_events
+    )
+
+
+# ============================================================
+# 404 ERROR
+# ============================================================
+
+@app.errorhandler(404)
+def page_not_found(error):
+
+    return render_template(
+        "base.html"
+    ), 404
+
+
+# ============================================================
+# 500 ERROR
+# ============================================================
+
+@app.errorhandler(500)
+def internal_server_error(error):
+
+    return (
+        """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Server Error</title>
+
+            <style>
+
+                body {
+                    font-family: Arial;
+                    background: #eef8f1;
+                    text-align: center;
+                    padding: 60px 20px;
+                }
+
+                .box {
+                    max-width: 600px;
+                    margin: auto;
+                    background: white;
+                    padding: 35px;
+                    border-radius: 15px;
+                    box-shadow: 0 5px 20px rgba(0,0,0,.08);
+                }
+
+                h1 {
+                    color: #b42318;
+                }
+
+                a {
+                    display: inline-block;
+                    margin-top: 20px;
+                    background: #087f3f;
+                    color: white;
+                    padding: 12px 18px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: bold;
+                }
+
+            </style>
+
+        </head>
+
+        <body>
+
+            <div class="box">
+
+                <h1>
+                    Something went wrong
+                </h1>
 
                 <p>
-                    This visitor application has been
-                    approved by the administrator.
+                    The server encountered an unexpected error.
                 </p>
 
-
-                <div class="details">
-
-                    <div class="detail">
-
-                        <strong>
-                            Visitor
-                        </strong>
-
-                        <span>
-                            {{ visitor["visitor_name"] }}
-                        </span>
-
-                    </div>
-
-
-                    <div class="detail">
-
-                        <strong>
-                            Visit Date
-                        </strong>
-
-                        <span>
-                            {{ visitor["visit_date"] }}
-                        </span>
-
-                    </div>
-
-
-                    {% if visitor["arrival_time"] %}
-
-                    <div class="detail">
-
-                        <strong>
-                            Arrival Time
-                        </strong>
-
-                        <span>
-                            {{ visitor["arrival_time"] }}
-                        </span>
-
-                    </div>
-
-                    {% endif %}
-
-
-                    {% if visitor["person_to_meet"] %}
-
-                    <div class="detail">
-
-                        <strong>
-                            Person to Meet
-                        </strong>
-
-                        <span>
-                            {{ visitor["person_to_meet"] }}
-                        </span>
-
-                    </div>
-
-                    {% endif %}
-
-
-                    <div class="detail">
-
-                        <strong>
-                            Purpose
-                        </strong>
-
-                        <span>
-                            {{ visitor["purpose"] }}
-                        </span>
-
-                    </div>
-
-
-                    <div class="detail">
-
-                        <strong>
-                            Pass Code
-                        </strong>
-
-                        <span>
-                            {{ visitor["qr_code"] or visitor["pass_code"] }}
-                        </span>
-
-                    </div>
-
-                </div>
+                <a href="/">
+                    Return Home
+                </a>
 
             </div>
 
-
-            {% elif visitor["status"]|lower == "pending" %}
-
-            <div class="result pending">
-
-                <div class="result-icon">
-                    ⏳
-                </div>
-
-                <h3>
-                    PASS PENDING
-                </h3>
-
-                <p>
-                    This visitor application is still
-                    waiting for administrator approval.
-                </p>
-
-                <p>
-                    The visitor pass cannot be used
-                    for campus entry until it is approved.
-                </p>
-
-            </div>
+        </body>
+        </html>
+        """,
+        500
+    )
 
 
-            {% else %}
+# ============================================================
+# APPLICATION INFORMATION
+# ============================================================
 
-            <div class="result invalid">
+print("=" * 60)
 
-                <div class="result-icon">
-                    ❌
-                </div>
+print("GITAM CAMPUS LIFE")
 
-                <h3>
-                    VISITOR PASS REJECTED
-                </h3>
+print("Version:", APP_VERSION)
 
-                <p>
-                    This visitor application has been
-                    rejected by the administrator.
-                </p>
+print("Creator:", CREATOR)
 
-                <p>
-                    This pass is not valid for campus entry.
-                </p>
-
-            </div>
-
-            {% endif %}
-
-
-        {% elif request.method == "POST" %}
-
-        <div class="result invalid">
-
-            <div class="result-icon">
-                ❓
-            </div>
-
-            <h3>
-                PASS NOT FOUND
-            </h3>
-
-            <p>
-                No visitor application was found
-                for the entered pass code.
-            </p>
-
-            <p>
-                Please check the code and try again.
-            </p>
-
-        </div>
-
-        {% endif %}
-
-
-        <a
-            href="{{ url_for('visitor.status') }}"
-            class="back"
-        >
-            ← Check Application Status
-        </a>
-
-    </div>
-
-
-</main>
-
-
-<footer class="footer">
-
-    MADE BY TEAM INNOVATORS HUB
-
-</footer>
-
-
-</body>
-
-</html>
+print("=" * 60)
