@@ -3,10 +3,6 @@
 # MAIN APPLICATION
 # ============================================================
 
-import os
-
-from werkzeug.security import generate_password_hash
-
 from flask import (
     Flask,
     render_template,
@@ -65,62 +61,6 @@ try:
 except Exception as e:
 
     print("[ERROR] Database initialization failed:")
-    print(e)
-
-
-# ============================================================
-# RENDER ADMIN BOOTSTRAP
-# ============================================================
-# Set ADMIN_USERNAME and ADMIN_PASSWORD in Render Environment Variables.
-# The password is never hard-coded in this file.
-
-try:
-    admin_username = os.getenv("ADMIN_USERNAME", "").strip()
-    admin_password = os.getenv("ADMIN_PASSWORD", "")
-
-    if admin_username and admin_password:
-        db = get_db()
-        existing_admin = db.execute(
-            "SELECT id FROM users WHERE username = ? LIMIT 1",
-            (admin_username,)
-        ).fetchone()
-
-        password_hash = generate_password_hash(admin_password)
-
-        if existing_admin:
-            db.execute(
-                """
-                UPDATE users
-                SET password = ?, role = 'admin', status = 'Active'
-                WHERE id = ?
-                """,
-                (password_hash, existing_admin["id"])
-            )
-            print("[OK] Render admin account updated.")
-        else:
-            db.execute(
-                """
-                INSERT INTO users
-                (username, password, name, email, role, roll_no, branch,
-                 year, designation, phone, status)
-                VALUES (?, ?, ?, ?, 'admin', '', '', '', 'Administrator', '', 'Active')
-                """,
-                (
-                    admin_username,
-                    password_hash,
-                    "Campus Administrator",
-                    f"{admin_username}@gitamcampus.local"
-                )
-            )
-            print("[OK] Render admin account created.")
-
-        db.commit()
-        db.close()
-    else:
-        print("[INFO] ADMIN_USERNAME / ADMIN_PASSWORD not set; admin bootstrap skipped.")
-
-except Exception as e:
-    print("[ERROR] Render admin bootstrap failed:")
     print(e)
 
 
