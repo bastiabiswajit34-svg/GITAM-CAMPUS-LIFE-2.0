@@ -29,7 +29,6 @@ from auth import (
     login_required
 )
 
-from werkzeug.security import generate_password_hash
 
 # ============================================================
 # FLASK APP
@@ -56,43 +55,7 @@ app.config["CREATOR"] = CREATOR
 try:
 
     init_db()
-    
-# ============================================================
-# AUTO CREATE ADMIN ACCOUNT
-# ============================================================
 
-conn = get_db()
-
-admin = conn.execute(
-    "SELECT id FROM users WHERE username = ?",
-    ("admin",)
-).fetchone()
-
-if not admin:
-    conn.execute(
-        """
-        INSERT INTO users
-        (username, password, name, email, role, roll_no,
-         branch, year, designation, phone, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            "admin",
-            generate_password_hash("Admin@123"),
-            "Campus Administrator",
-            "admin@gitamcampus.local",
-            "admin",
-            "",
-            "",
-            "",
-            "Administrator",
-            "",
-            "Active"
-        )
-    )
-    conn.commit()
-
-conn.close()
     print("[OK] Database initialized successfully.")
 
 except Exception as e:
