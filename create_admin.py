@@ -20,7 +20,7 @@ init_db()
 # ============================================================
 
 USERNAME = "admin"
-PASSWORD = "Admin@123"
+PASSWORD = "Admin@12"
 NAME = "Campus Administrator"
 EMAIL = "admin@gitamcampus.local"
 
